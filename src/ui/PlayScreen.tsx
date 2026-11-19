@@ -24,6 +24,7 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
   const [steps, setSteps] = useState(0);
   const [scroll, setScroll] = useState(0); // Pixel pro Sekunde, 0 = aus
   const [fontSize, setFontSize] = useState(17);
+  const [more, setMore] = useState(false);
   const [secs, setSecs] = useState(0);
   const sv = useRef<ScrollViewInstance>(null);
   const y = useRef(0);
@@ -162,7 +163,11 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
             <Text style={s.btnTxt}>{listening ? 'Zuhoeren beenden' : 'Zuhoeren (Mikrofon)'}</Text>
           </Pressable>
           {listening ? <Text style={[s.text, { marginLeft: 12, minWidth: 54 }]}>{heard ? `♪ ${heard}` : ''}</Text> : null}
+          <Pressable style={[s.btn2, { marginLeft: 8, borderColor: more ? C.accent : C.line }]} onPress={() => setMore((m) => !m)}>
+            <Text style={s.btn2Txt}>{more ? 'Weniger ▾' : 'Mehr ▴'}</Text>
+          </Pressable>
         </View>
+        {more && <>
         <View style={[s.row, { justifyContent: 'space-between', marginBottom: 8 }]}>
           <View style={s.row}>
             <Pressable style={s.btn2} onPress={() => setSteps((x) => x - 1)}><Text style={s.btn2Txt}>−</Text></Pressable>
@@ -190,6 +195,7 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
             <Text style={{ color: C.warn }}>Loeschen</Text>
           </Pressable>
         </View>
+        </>}
       </View>
     </View>
   );

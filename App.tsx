@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Pressable, SafeAreaView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useStore } from './src/store';
 import { SongsScreen } from './src/ui/SongsScreen';
@@ -27,6 +28,7 @@ export default function App() {
   if (!store.ready) return <View style={s.screen} />;
 
   return (
+    <SafeAreaProvider>
     <SafeAreaView style={s.screen}>
       <StatusBar style="light" />
       <UpdateBanner />
@@ -59,5 +61,6 @@ export default function App() {
         </View>
       )}
     </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
