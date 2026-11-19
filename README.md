@@ -38,3 +38,9 @@ Web-App (PWA), gehostet auf GitHub Pages aus Branch `gh-pages` des Repos `ehret1
 Bauen und veröffentlichen: `npm run build:web`, Inhalt von `dist/` in den Branch `gh-pages` pushen.
 Web-Grenzen: Netz-Import oft durch Browser-Sperre (CORS) blockiert → Text einfügen; Haptik fehlt.
 Native APK: `.github/workflows/apk.yml` (baut bei Push auf `main`), braucht für den Push den `gh`-Scope `workflow` (`gh auth refresh -s workflow`); im Repo derzeit nicht enthalten.
+
+## Liederbibliothek
+`src/data/christmas.ts`: 15 gemeinfreie Weihnachtslieder (Texte traditionell oder Autor >70 Jahre tot) mit einfachen eigenen Akkordfolgen (nur Griffe mit Bild). In der App: Lieder → „Weihnachtslieder-Bibliothek". Neue Lieder: Eintrag in `CHRISTMAS` ergänzen; der Test prüft, dass jeder Akkord ein Griffbild hat.
+
+## Zuhören (Mikrofon, nur Web-App)
+Im Liedmodus „Zuhören (Mikrofon)": Web Audio (`src/mic.ts`, FFT 8192, Echo-/Rauschfilter aus) → Tonhöhenvektor (`src/logic/listen.ts`) → Ähnlichkeit zu den Akkorden **des Liedes** → `Follower` rückt bei stabil erkanntem Akkordwechsel (3 Messungen ≈ 0,3 s) zur nächsten passenden Akkordstelle vor und scrollt die Zeile nach oben. Zeile antippen = Position manuell setzen. Grenzen: erkennt Akkorde, keine Einzelnoten/Melodie; nur Vorwärtsverfolgung; Kapo → Lied transponieren statt Griffe mit Kapo spielen; laute Umgebung/Gesang stören; Erkennung bisher nur mit künstlichen Spektren getestet, **nicht mit echter Gitarre**. Native App: nicht umgesetzt (bräuchte natives Audio-Modul).

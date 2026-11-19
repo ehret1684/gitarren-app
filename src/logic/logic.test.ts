@@ -94,3 +94,62 @@ test('Weihnachtsbibliothek: eindeutige IDs, alle Akkorde gueltig und mit Griffbi
     }
   }
 });
+
+import { chromaFromSpectrum, detect, Follower } from './listen';
+
+// Kuenstliches Gitarrenspektrum: Noten mit Obertoenen, Bin = Frequenz / (sr/fft)
+function spectrum(freqs: number[], sr = 44100, fft = 8192): Float32Array {
+  const m = new Float32Array(fft / 2);
+  const bw = sr / fft;
+  for (const f of freqs) for (let h = 1; h <= 4; h++) {
+    const b = Math.round((f * h) / bw);
+    if (b < m.length) { m[b] += 1 / h; m[b - 1] += 0.4 / h; m[b + 1] += 0.4 / h; }
+  }
+  return m;
+}
+const hz = (n: number) => 440 * Math.pow(2, (n - 69) / 12);
+const GUITAR: Record<string, number[]> = {
+  G: [43, 47, 50, 55, 59, 67], C: [48, 52, 55, 60, 64], D: [50, 57, 62, 66],
+  Em: [40, 47, 52, 55, 59, 64], Am: [45, 52, 57, 60, 64],
+};
+
+test('Akkorderkennung aus Spektrum (nur Akkorde des Liedes)', () => {
+  const song = ['G', 'C', 'D', 'Em', 'Am'];
+  for (const [name, notes] of Object.entries(GUITAR)) {
+    const ch = chromaFromSpectrum(spectrum(notes.map(hz)), 44100, 8192);
+    assert.equal(detect(ch, song), name, name);
+  }
+});
+
+test('Stille und Rauschen ergeben keinen Akkord', () => {
+  const song = ['G', 'C', 'D'];
+  assert.equal(detect(chromaFromSpectrum(new Float32Array(4096), 44100, 8192), song), null);
+  const flat = new Array(12).fill(1 / Math.sqrt(12));
+  assert.equal(detect(flat, song), null);
+});
+
+test('Follower folgt Akkordwechseln und ueberspringt Wiederholungen', () => {
+  const f = new Follower([
+    { chord: 'G', line: 0 }, { chord: 'G', line: 0 }, { chord: 'D', line: 1 },
+    { chord: 'Em', line: 1 }, { chord: 'C', line: 2 }, { chord: 'G', line: 3 },
+  ]);
+  const feed = (c: string, n = 3) => { let m = false; for (let i = 0; i < n; i++) m = f.feed(c) || m; return m; };
+  assert.equal(feed('G'), false);
+  assert.equal(f.line, 0);
+  assert.equal(feed('D'), true);
+  assert.equal(f.pos, 2);
+  assert.equal(feed('Em', 2), false); // zu kurz = Stoerung
+  assert.equal(feed('Em'), true);
+  assert.equal(feed('C'), true);
+  assert.equal(f.line, 2);
+  assert.equal(feed('Am'), false); // gehoert nicht zum Lied
+  assert.equal(f.line, 2);
+});
+
+test('Follower: verirrt sich nicht rueckwaerts, setLine setzt neu', () => {
+  const f = new Follower([{ chord: 'G', line: 0 }, { chord: 'C', line: 1 }, { chord: 'D', line: 2 }]);
+  f.setLine(2);
+  assert.equal(f.pos, 2);
+  for (let i = 0; i < 5; i++) f.feed('G');
+  assert.equal(f.pos, 2);
+});

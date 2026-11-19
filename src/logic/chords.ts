@@ -44,7 +44,7 @@ export function detectGerman(chords: string[]): boolean {
   return chords.some((c) => /^H/.test(c.trim()) || /\/H/.test(c));
 }
 
-function rootIndex(root: string, german: boolean): number {
+export function rootIndex(root: string, german: boolean): number {
   if (german && root === 'B') return 10;
   return noteIndex(root);
 }

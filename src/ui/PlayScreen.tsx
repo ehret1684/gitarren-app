@@ -4,6 +4,8 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { Song, Status } from '../logic/practice';
 import { allChords, parseSong, toSegments } from '../logic/song';
 import { Style, detectGerman, shapeFor, suggestCapo, transposeChord } from '../logic/chords';
+import { micSupported, startMic } from '../mic';
+import { Follower, detect } from '../logic/listen';
 import { ChordDiagram } from './ChordDiagram';
 import { STATUS_LABEL } from './SongsScreen';
 import { C, s } from './theme';
@@ -25,11 +27,67 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
   const [secs, setSecs] = useState(0);
   const sv = useRef<ScrollViewInstance>(null);
   const y = useRef(0);
+  const lineY = useRef<number[]>([]);
+  const [listening, setListening] = useState(false);
+  const [heard, setHeard] = useState<string>('');
+  const [curLine, setCurLine] = useState(-1);
+  const stopMic = useRef<null | (() => void)>(null);
+  const follower = useRef<Follower | null>(null);
+  const smooth = useRef<number[]>(new Array(12).fill(0));
 
   const st: Style = { flats: steps !== 0 && [1, 3, 5, 8, 10].includes(((steps % 12) + 12) % 12), german };
   const map = (c: string) => (steps ? transposeChord(c, steps, st) : c);
   const shown = [...new Set(chords.map(map))];
   const capo = useMemo(() => suggestCapo(chords, german), [chords, german]);
+
+  const tokens = useMemo(
+    () => lines.flatMap((l, i) => [...l.chords].sort((a, b) => a.pos - b.pos).map((c) => ({ chord: map(c.chord), line: i }))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lines, steps, german],
+  );
+  const tokensRef = useRef(tokens);
+  tokensRef.current = tokens;
+
+  const goTo = (line: number) => {
+    setCurLine(line);
+    const yy = lineY.current[line];
+    if (yy !== undefined) sv.current?.scrollTo({ y: Math.max(0, yy - 120), animated: true });
+  };
+
+  const stopListening = () => {
+    stopMic.current?.();
+    stopMic.current = null;
+    setListening(false);
+    setHeard('');
+  };
+  useEffect(() => () => stopMic.current?.(), []);
+  useEffect(() => { if (listening) follower.current = new Follower(tokens); }, [tokens, listening]);
+
+  const startListening = async () => {
+    if (!micSupported()) {
+      Alert.alert('Zuhoeren nur in der Web-App', 'Oeffne die App im Browser (Link) und erlaube das Mikrofon. Es braucht eine https-Adresse.');
+      return;
+    }
+    try {
+      follower.current = new Follower(tokensRef.current);
+      if (curLine >= 0) follower.current.setLine(curLine);
+      else setCurLine(0);
+      smooth.current = new Array(12).fill(0);
+      stopMic.current = await startMic(({ chroma, level }) => {
+        const sm = smooth.current;
+        for (let i = 0; i < 12; i++) sm[i] = sm[i] * 0.5 + chroma[i] * 0.5;
+        const f = follower.current;
+        if (!f) return;
+        const song_chords = [...new Set(tokensRef.current.map((x) => x.chord))];
+        const det = level > 0.01 ? detect(sm, song_chords, german) : null;
+        setHeard(det ?? (level > 0.01 ? '...' : ''));
+        if (f.feed(det)) goTo(f.line);
+      });
+      setListening(true);
+    } catch {
+      Alert.alert('Kein Mikrofon', 'Zugriff verweigert oder nicht verfuegbar. Erlaube das Mikrofon in den Browser-Einstellungen der Seite.');
+    }
+  };
 
   useEffect(() => {
     const t = setInterval(() => setSecs((x) => x + 1), 1000);
@@ -80,7 +138,12 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
           l.section ? (
             <Text key={i} style={{ color: C.accent, fontWeight: '700', marginTop: 14, marginBottom: 4, fontSize }}>{l.section}</Text>
           ) : (
-            <View key={i} style={{ flexDirection: 'row', flexWrap: 'wrap', minHeight: fontSize + 6, marginBottom: 6 }}>
+            <Pressable
+              key={i}
+              onLayout={(e) => { lineY.current[i] = e.nativeEvent.layout.y; }}
+              onPress={() => { if (listening) { follower.current?.setLine(i); goTo(i); } }}
+              style={{ flexDirection: 'row', flexWrap: 'wrap', minHeight: fontSize + 6, marginBottom: 6, borderLeftWidth: 3, paddingLeft: 6, borderLeftColor: listening && curLine === i ? C.accent : 'transparent', backgroundColor: listening && curLine === i ? '#2b2218' : 'transparent' }}
+            >
               {toSegments(l, map).map((g, k) => (
                 <View key={k}>
                   <Text style={{ color: C.chord, fontWeight: '700', fontSize: fontSize - 1, height: g.chord || l.chords.length ? fontSize + 4 : 0, fontFamily: 'monospace' }}>
@@ -89,11 +152,17 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
                   <Text style={{ color: C.text, fontSize, fontFamily: 'monospace' }}>{g.text || ' '}</Text>
                 </View>
               ))}
-            </View>
+            </Pressable>
           ),
         )}
       </ScrollView>
       <View style={{ backgroundColor: C.card, padding: 10, borderTopWidth: 1, borderColor: C.line }}>
+        <View style={[s.row, { marginBottom: 8 }]}>
+          <Pressable style={[s.btn, { flex: 1, backgroundColor: listening ? C.warn : C.accent }]} onPress={listening ? stopListening : startListening}>
+            <Text style={s.btnTxt}>{listening ? 'Zuhoeren beenden' : 'Zuhoeren (Mikrofon)'}</Text>
+          </Pressable>
+          {listening ? <Text style={[s.text, { marginLeft: 12, minWidth: 54 }]}>{heard ? `♪ ${heard}` : ''}</Text> : null}
+        </View>
         <View style={[s.row, { justifyContent: 'space-between', marginBottom: 8 }]}>
           <View style={s.row}>
             <Pressable style={s.btn2} onPress={() => setSteps((x) => x - 1)}><Text style={s.btn2Txt}>−</Text></Pressable>
