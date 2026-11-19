@@ -4,6 +4,29 @@ import { chromaFromSpectrum } from './logic/listen';
 export const micSupported = (): boolean =>
   Platform.OS === 'web' && typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
 
+/** Rohsignal fuer das Stimmgeraet: alle ~80 ms ein Zeitfenster (4096 Samples). */
+export async function startPitchMic(onWave: (wave: Float32Array, sampleRate: number) => void): Promise<() => void> {
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+  });
+  const Ctx = (globalThis as any).AudioContext || (globalThis as any).webkitAudioContext;
+  const ctx = new Ctx();
+  if (ctx.state === 'suspended') await ctx.resume();
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 4096;
+  ctx.createMediaStreamSource(stream).connect(analyser);
+  const wave = new Float32Array(analyser.fftSize);
+  const timer = setInterval(() => {
+    analyser.getFloatTimeDomainData(wave);
+    onWave(wave, ctx.sampleRate);
+  }, 80);
+  return () => {
+    clearInterval(timer);
+    stream.getTracks().forEach((t) => t.stop());
+    ctx.close().catch(() => {});
+  };
+}
+
 export type MicFrame = { chroma: number[]; level: number };
 
 /**

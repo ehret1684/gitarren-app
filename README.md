@@ -1,7 +1,7 @@
 # Gitarren-Übungs-App
 
 Native App (Expo / React Native, TypeScript) zum Üben von Lagerfeuer-Liedern, Zielgruppe Anfänger.
-Scope: nur diese App. Was nicht hierher gehört: Hof-/Smarthome-Apps.
+Wiki: `docs/wiki/INDEX.md` (Architektur, Logik, Lessons Learned, Status). Scope: nur diese App. Was nicht hierher gehört: Hof-/Smarthome-Apps.
 
 ## Funktionen
 | Bereich | Inhalt |

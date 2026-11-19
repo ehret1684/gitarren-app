@@ -4,6 +4,7 @@ import { transposeChord, parseChord, suggestCapo, detectGerman, shapeFor } from 
 import { parseSong, toSegments, allChords } from './song';
 import { extractFromHtml } from './importer';
 import { streak, suggestToday, dayKey, Song } from './practice';
+import { detectPitch, nearestString, PitchSmoother } from './pitch';
 import { makeWav, toBase64 } from './wav';
 
 const st = { flats: false, german: false };
@@ -152,4 +153,42 @@ test('Follower: verirrt sich nicht rueckwaerts, setLine setzt neu', () => {
   assert.equal(f.pos, 2);
   for (let i = 0; i < 5; i++) f.feed('G');
   assert.equal(f.pos, 2);
+});
+
+function sine(f: number, sr = 44100, n = 4096) {
+  const b = new Float32Array(n);
+  for (let i = 0; i < n; i++) b[i] = 0.3 * Math.sin((2 * Math.PI * f * i) / sr) + 0.15 * Math.sin((4 * Math.PI * f * i) / sr) + 0.1 * Math.sin((6 * Math.PI * f * i) / sr);
+  return b;
+}
+
+test('Stimmgeraet: erkennt alle sechs Saiten auf 2 Cent genau', () => {
+  for (const f of [82.41, 110, 146.83, 196, 246.94, 329.63]) {
+    const got = detectPitch(sine(f), 44100)!;
+    assert.ok(got, 'kein Ton bei ' + f);
+    assert.ok(Math.abs(1200 * Math.log2(got / f)) < 2, `${f} -> ${got}`);
+  }
+});
+
+test('Stimmgeraet: Stille und Rauschen ergeben keinen Ton', () => {
+  assert.equal(detectPitch(new Float32Array(4096), 44100), null);
+  const n = new Float32Array(4096);
+  let x = 1;
+  for (let i = 0; i < n.length; i++) { x = (x * 16807) % 2147483647; n[i] = (x / 2147483647 - 0.5) * 0.4; }
+  assert.equal(detectPitch(n, 44100), null);
+});
+
+test('Stimmgeraet: Saite und Cent-Abweichung', () => {
+  const r = nearestString(110 * Math.pow(2, 20 / 1200));
+  assert.equal(r.string.name, 'A');
+  assert.ok(Math.abs(r.cents - 20) < 0.01);
+  const h = nearestString(110 * Math.pow(2, -1 / 12), -1);
+  assert.equal(h.string.name, 'A');
+  assert.ok(Math.abs(h.cents) < 0.01);
+});
+
+test('Stimmgeraet: Median glaettet Ausreisser', () => {
+  const sm = new PitchSmoother(5);
+  let out: number | null = null;
+  for (const f of [110, 110.2, 220, 110.1, 109.9]) out = sm.push(f);
+  assert.ok(out! > 109 && out! < 111);
 });

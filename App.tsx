@@ -4,7 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useStore } from './src/store';
 import { SongsScreen } from './src/ui/SongsScreen';
 import { PlayScreen } from './src/ui/PlayScreen';
-import { MetronomeScreen, TunerScreen } from './src/ui/ToolsScreen';
+import { MetronomeScreen } from './src/ui/ToolsScreen';
+import { TunerScreen } from './src/ui/TunerScreen';
 import { PracticeScreen } from './src/ui/PracticeScreen';
 import { C, s } from './src/ui/theme';
 

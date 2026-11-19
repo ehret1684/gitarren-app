@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { play, tonePlayer } from '../audio';
-import { STRINGS } from '../logic/wav';
 import { C, s } from './theme';
 
 export function MetronomeScreen() {
@@ -70,27 +69,3 @@ export function MetronomeScreen() {
   );
 }
 
-export function TunerScreen() {
-  const [active, setActive] = useState<string | null>(null);
-  const play1 = (name: string, freq: number) => {
-    setActive(name);
-    play(tonePlayer('tone-' + name, freq, 2500, false));
-  };
-  return (
-    <ScrollView style={s.screen} contentContainerStyle={s.pad}>
-      <Text style={s.h1}>Stimmen</Text>
-      <Text style={[s.dim, { marginBottom: 12 }]}>
-        Referenzton antippen, passende Saite anschlagen und so lange drehen, bis beide Toene nicht mehr "schweben". Ein Mikrofon-Stimmgeraet ist noch nicht eingebaut.
-      </Text>
-      {STRINGS.map((st) => (
-        <Pressable key={st.name} style={[s.card, s.row, { borderColor: active === st.name ? C.accent : C.line }]} onPress={() => play1(st.name, st.freq)}>
-          <Text style={{ color: C.accent, fontSize: 28, fontWeight: '800', width: 44 }}>{st.name}</Text>
-          <View>
-            <Text style={s.text}>{st.label}</Text>
-            <Text style={s.dim}>{st.freq.toFixed(2)} Hz</Text>
-          </View>
-        </Pressable>
-      ))}
-    </ScrollView>
-  );
-}
