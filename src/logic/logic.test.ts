@@ -7,6 +7,7 @@ import { streak, suggestToday, dayKey, Song } from './practice';
 import { detectPitch, nearestString, PitchSmoother } from './pitch';
 import { localSearch, parseAiSongs, aiToSong, aiSearch } from './aiSearch';
 import { checkUpdate, buildNumber } from './updateCheck';
+import { chordTab, chordFrets, lineToTab } from './tab';
 import { fftMagnitudes } from './fft';
 import { makeWav, toBase64 } from './wav';
 
@@ -264,4 +265,21 @@ test('Liedersuche: Zugangscode geht an den Vermittler, falscher Code wird gemeld
   assert.equal(seen.init.headers['x-code'], 'mein-code');
   const bad = (async () => ({ ok: false, status: 401, json: async () => ({}) })) as any;
   await assert.rejects(() => aiSearch('x', 'falsch', bad), /Zugangscode/);
+});
+
+test('Tabulatur: C-Dur von oben nach unten, Stumme als x', () => {
+  assert.deepEqual(chordFrets('C'), [0, 1, 0, 2, 3, -1]);
+  assert.deepEqual(chordTab('C'), ['e|-0-|', 'B|-1-|', 'G|-0-|', 'D|-2-|', 'A|-3-|', 'E|-x-|']);
+  assert.equal(chordFrets('Xyz'), null);
+});
+
+test('Tabulatur: Liedzeile, Saeulen stehen ueber der Silbe', () => {
+  const l = parseSong('[G]Stille [D]Nacht')[0];
+  const b = lineToTab(l);
+  assert.equal(b.strings.length, 6);
+  assert.ok(b.chords.startsWith('G') && b.chords.includes('D'));
+  assert.equal(new Set([b.chords.length, b.text.length]).size, 1);
+  assert.ok(b.strings.every((r) => r.length === b.strings[0].length));
+  assert.ok(b.strings[0].startsWith('e|3')); // G-Dur: hohes e = Bund 3
+  assert.ok(lineToTab(l, (c) => (c === 'G' ? 'A' : c)).chords.startsWith('A'));
 });

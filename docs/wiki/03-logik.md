@@ -92,3 +92,7 @@ graph LR
 - `src/otaUpdate.ts`: `checkForUpdateAsync` → `fetchUpdateAsync` → Banner „Update geladen · Neu starten" (`reloadAsync`). Ohne OTA-Treffer prüft `checkUpdate` weiter auf eine neue APK.
 - **`runtimeVersion` hochzählen**, sobald sich native Module/Plugins ändern (neue Bibliothek, `app.json`-Plugins): nur dann braucht es eine neue APK; reine JS-/Bildänderungen kommen per OTA. Eine APK mit alter Runtime ignoriert neuere Updates.
 - **Beim manuellen Web-Deploy `ota/` auf `gh-pages` stehen lassen** (nicht mit löschen).
+
+## Tabulatur-Ansicht (`src/logic/tab.ts`)
+
+Knopf „Tab" im Liedmodus. `chordFrets` dreht die Griffe aus `SHAPES` (tief → hoch) auf Tabulaturreihenfolge (e, B, G, D, A, E; `x` = Saite nicht gespielt). `lineToTab` setzt jeden Akkord als Bundzahlen-Säule genau über die Silbe, auf der er steht; Transponieren und Kapo-Absenkung wirken mit (`map`). Zeilen ohne Akkord bleiben Text. **Grenze:** Es werden nur Akkordgriffe als Tab ausgegeben, keine Melodienoten — die Lieder enthalten keine Notendaten, und Melodien aus dem Gedächtnis zu setzen wäre unzuverlässig.

@@ -6,6 +6,7 @@ import { allChords, parseSong, toSegments } from '../logic/song';
 import { Style, detectGerman, shapeFor, suggestCapo, transposeChord } from '../logic/chords';
 import { micSupported, startMic } from '../mic';
 import { Follower, detect } from '../logic/listen';
+import { lineToTab } from '../logic/tab';
 import { ChordDiagram } from './ChordDiagram';
 import { STATUS_LABEL } from './SongsScreen';
 import { C, s } from './theme';
@@ -25,6 +26,7 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
   const [scroll, setScroll] = useState(0); // Pixel pro Sekunde, 0 = aus
   const [fontSize, setFontSize] = useState(17);
   const [more, setMore] = useState(false);
+  const [tab, setTab] = useState(false);
   const [secs, setSecs] = useState(0);
   const sv = useRef<ScrollViewInstance>(null);
   const y = useRef(0);
@@ -145,7 +147,21 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
               onPress={() => { if (listening) { follower.current?.setLine(i); goTo(i); } }}
               style={{ flexDirection: 'row', flexWrap: 'wrap', minHeight: fontSize + 6, marginBottom: 6, borderLeftWidth: 3, paddingLeft: 6, borderLeftColor: listening && curLine === i ? C.accent : 'transparent', backgroundColor: listening && curLine === i ? '#2b2218' : 'transparent' }}
             >
-              {toSegments(l, map).map((g, k) => (
+              {tab && l.chords.length > 0 ? (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {(() => {
+                    const b = lineToTab(l, map, german);
+                    const f = { fontFamily: 'monospace', fontSize: Math.max(11, fontSize - 3) } as const;
+                    return (
+                      <View>
+                        <Text style={[f, { color: C.chord, fontWeight: '700' }]}>{'  ' + b.chords}</Text>
+                        {b.strings.map((r, i) => <Text key={i} style={[f, { color: C.dim }]}>{r}</Text>)}
+                        <Text style={[f, { color: C.text }]}>{'  ' + b.text}</Text>
+                      </View>
+                    );
+                  })()}
+                </ScrollView>
+              ) : toSegments(l, map).map((g, k) => (
                 <View key={k}>
                   <Text style={{ color: C.chord, fontWeight: '700', fontSize: fontSize - 1, height: g.chord || l.chords.length ? fontSize + 4 : 0, fontFamily: 'monospace' }}>
                     {g.chord ? g.chord + ' ' : ' '}
@@ -163,6 +179,9 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
             <Text style={s.btnTxt}>{listening ? 'Zuhoeren beenden' : 'Zuhoeren (Mikrofon)'}</Text>
           </Pressable>
           {listening ? <Text style={[s.text, { marginLeft: 12, minWidth: 54 }]}>{heard ? `♪ ${heard}` : ''}</Text> : null}
+          <Pressable style={[s.btn2, { marginLeft: 8, borderColor: tab ? C.accent : C.line }]} onPress={() => setTab((x) => !x)}>
+            <Text style={s.btn2Txt}>Tab</Text>
+          </Pressable>
           <Pressable style={[s.btn2, { marginLeft: 8, borderColor: more ? C.accent : C.line }]} onPress={() => setMore((m) => !m)}>
             <Text style={s.btn2Txt}>{more ? 'Weniger ▾' : 'Mehr ▴'}</Text>
           </Pressable>
