@@ -66,3 +66,7 @@ Selbstkorrigierender `setTimeout` (`next += 60000/bpm`), Klick = WAV mit 1500/10
 
 - Web: `build-web.mjs` schreibt `dist/version.json` und `window.__BUILD__` in `index.html` (Zeitstempel). Die App vergleicht beim Start, bei Rückkehr in den Vordergrund und alle 30 min; bei Abweichung Banner „Aktualisieren" (= Seite neu laden, kein manuelles Leeren).
 - APK: Workflow setzt `EXPO_PUBLIC_BUILD=${{ github.run_number }}`; die App fragt `releases/latest` von `ehret1684/gitarren-app` ab; höheres `build-N` → Banner mit Direktlink auf die APK. Ohne Build-Kennung (Entwicklung) keine Prüfung. Installieren muss man die APK weiterhin selbst (Android-Vorgabe).
+
+## App-Symbol
+
+`scripts/make-icons.py` (Pillow) zeichnet eine Gitarre und erzeugt alle Dateien in `assets/` (`icon`, `android-icon-foreground/-background/-monochrome`, `splash-icon`, `favicon`). Farben aus `theme.ts` (Akzent `#f2a03d` auf `#14110f`). Neu erzeugen: `python scripts/make-icons.py`, dann `npm run build:web`.
