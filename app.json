@@ -21,10 +21,15 @@
       "package": "app.gitarrenuebung"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "bundler": "metro"
     },
     "plugins": [
       "expo-audio"
-    ]
+    ],
+    "experiments": {
+      "baseUrl": "/gitarren-app"
+    }
   }
 }

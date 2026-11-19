@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { Song, Status } from '../logic/practice';
@@ -67,7 +67,7 @@ function AddSong({ onClose, onAdd }: { onClose: () => void; onAdd: (s: Song) => 
       setSource(url.trim());
       if (!title && t) setTitle(t.slice(0, 80));
     } catch (e) {
-      Alert.alert('Import fehlgeschlagen', `${(e as Error).message}\nSeite blockiert Apps oder braucht JavaScript? Dann Text kopieren und unten einfuegen.`);
+      Alert.alert('Import fehlgeschlagen', `${(e as Error).message}\nSeite blockiert Apps/Browser (CORS) oder braucht JavaScript? Dann Text kopieren und unten einfuegen.`);
     } finally {
       setBusy(false);
     }
@@ -76,7 +76,8 @@ function AddSong({ onClose, onAdd }: { onClose: () => void; onAdd: (s: Song) => 
   const fromFile = async () => {
     const r = await DocumentPicker.getDocumentAsync({ type: ['text/*', 'application/octet-stream'], copyToCacheDirectory: true });
     if (r.canceled || !r.assets[0]) return;
-    const text = await new File(r.assets[0].uri).text();
+    const a = r.assets[0];
+    const text = Platform.OS === "web" && a.file ? await a.file.text() : await new File(a.uri).text();
     setBody(text);
     const g = guessTitle(text);
     if (g.title) setTitle(g.title);
