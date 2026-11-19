@@ -156,7 +156,7 @@ export function SearchScreen({ have, onAdd, onClose }: { have: Set<string>; onAd
           </Pressable>
         ))}
         <Pressable onPress={() => setShowKey((v) => !v)} style={{ marginTop: 14 }}>
-          <Text style={{ color: C.accent }}>{key ? 'KI aktiv - API-Schluessel aendern' : 'KI aktivieren (API-Schluessel)'}</Text>
+          <Text style={{ color: C.accent }}>{key ? 'KI aktiv - API-Schluessel aendern' : 'KI aktivieren (Zugangscode oder API-Schluessel)'}</Text>
         </Pressable>
         {showKey && (
           <View style={{ marginTop: 8 }}>
@@ -164,7 +164,7 @@ export function SearchScreen({ have, onAdd, onClose }: { have: Set<string>; onAd
               style={s.input}
               value={key}
               onChangeText={saveKey}
-              placeholder="sk-ant-..."
+              placeholder="Zugangscode oder sk-ant-..."
               placeholderTextColor={C.dim}
               secureTextEntry
               autoCapitalize="none"

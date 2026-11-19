@@ -1,6 +1,6 @@
 export const RELEASES_API = 'https://api.github.com/repos/ehret1684/gitarren-app/releases/latest';
 
-export type UpdateInfo = { label: string; url?: string };
+export type UpdateInfo = { label: string; url?: string; ota?: boolean };
 
 /** Zahl hinter "build-" im Release-Tag, sonst null. */
 export function buildNumber(tag: string): number | null {

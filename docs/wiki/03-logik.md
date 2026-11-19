@@ -70,3 +70,25 @@ Selbstkorrigierender `setTimeout` (`next += 60000/bpm`), Klick = WAV mit 1500/10
 ## App-Symbol
 
 `scripts/make-icons.py` (Pillow) zeichnet eine Gitarre und erzeugt alle Dateien in `assets/` (`icon`, `android-icon-foreground/-background/-monochrome`, `splash-icon`, `favicon`). Farben aus `theme.ts` (Akzent `#f2a03d` auf `#14110f`). Neu erzeugen: `python scripts/make-icons.py`, dann `npm run build:web`.
+
+## KI-Vermittler (`ki-proxy/server.mjs`) — Stand: Quelltext fertig, **nicht ausgerollt**
+
+Ein fest eingebauter Schlüssel wäre in der öffentlichen App und im öffentlichen Repo lesbar; deshalb hält ein kleiner Node-Dienst den Anthropic-Schlüssel (`ANTHROPIC_API_KEY`) und prüft einen Zugangscode (`APP_CODE`, Header `x-code`). Feste Modell- und Prompt-Vorgabe serverseitig, 300 Zeichen je Anfrage, `TAGESLIMIT` (150), fünf Fehlversuche je Absender = 15 min Sperre. Die App nimmt im Suchfeld entweder `sk-…` (direkt) oder den Zugangscode (über `PROXY_URL` in `aiSearch.ts`, derzeit leer). Der Prompt steht doppelt (App und Server) — bei Änderung beide anpassen.
+
+## Over-the-air-Updates (APK)
+
+```mermaid
+graph LR
+    P[Push auf main] --> CI[GitHub Action Job ota<br/>expo export android]
+    CI --> GP[gh-pages: ota/1/]
+    APP[APK mit expo-updates] -->|GET /manifest| KI[Railway gitarren-ki<br/>Manifest, Hashes]
+    KI -->|liest| GP
+    APP -->|laedt Bundle| GP
+    APP --> B[Banner: Neu starten]
+```
+
+- `app.json`: `runtimeVersion: "1"`, `updates.url` = `…/manifest` des Dienstes `gitarren-ki`; `checkAutomatically: ON_LOAD`, `fallbackToCacheTimeout: 0` (Start nie blockiert; bei Fehler läuft der eingebaute Stand).
+- Der Dienst `ki-proxy/server.mjs` baut aus `ota/<runtime>/metadata.json` ein Manifest (Protokoll 1, multipart, SHA-256-Hashes der Dateien, `id` = Hash der metadata).
+- `src/otaUpdate.ts`: `checkForUpdateAsync` → `fetchUpdateAsync` → Banner „Update geladen · Neu starten" (`reloadAsync`). Ohne OTA-Treffer prüft `checkUpdate` weiter auf eine neue APK.
+- **`runtimeVersion` hochzählen**, sobald sich native Module/Plugins ändern (neue Bibliothek, `app.json`-Plugins): nur dann braucht es eine neue APK; reine JS-/Bildänderungen kommen per OTA. Eine APK mit alter Runtime ignoriert neuere Updates.
+- **Beim manuellen Web-Deploy `ota/` auf `gh-pages` stehen lassen** (nicht mit löschen).

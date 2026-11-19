@@ -37,3 +37,34 @@ jobs:
           cp android/app/build/outputs/apk/release/app-release.apk gitarre-ueben.apk
           gh release create "build-${{ github.run_number }}" gitarre-ueben.apk \
             --title "Build ${{ github.run_number }}" --notes "Commit ${{ github.sha }}" --latest
+
+  ota:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_BUILD: ${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - name: Android-Export fuer Over-the-air-Updates
+        run: npx expo export --platform android --output-dir ota-dist
+      - name: Auf gh-pages unter ota/<runtimeVersion> veroeffentlichen
+        run: |
+          RT=$(node -p "require('./app.json').expo.runtimeVersion")
+          git config --global user.name ehret1684
+          git config --global user.email ehret1684@users.noreply.github.com
+          git fetch origin gh-pages
+          git worktree add ../pages gh-pages
+          rm -rf "../pages/ota/$RT"
+          mkdir -p "../pages/ota/$RT"
+          cp -r ota-dist/. "../pages/ota/$RT/"
+          cd ../pages
+          git add -A
+          git commit -m "OTA-Update (Build ${{ github.run_number }}, Runtime $RT)" || exit 0
+          git pull --rebase origin gh-pages
+          git push origin gh-pages

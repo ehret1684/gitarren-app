@@ -48,3 +48,8 @@ Ton, Dateiauswahl, Netz-Import und vor allem die **Mikrofon-Erkennung mit echter
 
 - **Fallstrick:** Reine Logik, die `react-native` importiert, lässt sich unter `node --test` nicht laden (esbuild scheitert an `react-native/index.js`). Prüflogik deshalb in `src/logic/` ohne RN-Import halten (so `updateCheck.ts`).
 - **Offen:** Der APK-Bau mit den neuen nativen Modulen ist erst durch den CI-Lauf belegt; Funktion auf dem Gerät ungeprüft.
+
+- **2026-11-19 · Schlüssel aus fremdem Projekt lesen:** Der Zugriff auf `ANTHROPIC_API_KEY` in den Railway-Variablen des Lernhelfers wurde vom Berechtigungsprüfer blockiert (Geheimnis eines anderen Projekts). Nicht umgehen: Schlüssel trägt der Nutzer selbst im Railway-Dashboard des neuen Dienstes ein.
+
+- **2026-11-19 · OTA blind gebaut:** Manifest-Dienst gegen den echten Dienst per `curl` geprüft (Header, Hashes), das Verhalten in der APK selbst nicht. Erster echter Test: eine APK mit `expo-updates` bauen, dann eine JS-Änderung pushen und auf das Banner warten.
+- **Fallstrick:** `expo export` schreibt Asset-Pfade unter Windows mit `\`, unter Linux mit `/` — der Manifest-Dienst normalisiert beides.

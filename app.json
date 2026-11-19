@@ -48,6 +48,13 @@
     ],
     "experiments": {
       "baseUrl": "/gitarren-app"
+    },
+    "runtimeVersion": "1",
+    "updates": {
+      "url": "https://gitarren-ki-production.up.railway.app/manifest",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
     }
   }
 }

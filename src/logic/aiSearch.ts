@@ -89,8 +89,35 @@ export function aiToSong(a: AiSong): Song {
 
 export class AiError extends Error {}
 
+/** Adresse des eigenen Vermittlers (haelt den Anthropic-Schluessel serverseitig); leer = nur eigener Schluessel moeglich. */
+export const PROXY_URL: string = 'https://gitarren-ki-production.up.railway.app';
+
+const parseText = (text: string): Song[] => parseAiSongs(text).map(aiToSong);
+
+/**
+ * Sucht per KI. `secret` ist entweder ein eigener Anthropic-Schluessel ("sk-...", direkter Aufruf aus dem Browser/der App)
+ * oder der Zugangscode fuer den Vermittler (PROXY_URL); der Schluessel selbst steht dann nur auf dem Server.
+ */
+export async function aiSearch(query: string, secret: string, fetchFn: typeof fetch = fetch): Promise<Song[]> {
+  const sec = secret.trim();
+  if (!sec.startsWith('sk-')) {
+    if (!PROXY_URL) throw new AiError('Vermittler ist noch nicht eingerichtet - trage einen eigenen API-Schluessel ein.');
+    const r = await fetchFn(PROXY_URL.replace(/\/$/, '') + '/suche', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-code': sec },
+      body: JSON.stringify({ query }),
+    });
+    if (r.status === 401) throw new AiError('Zugangscode wurde abgelehnt.');
+    if (r.status === 429) throw new AiError('Limit erreicht - spaeter erneut versuchen.');
+    if (!r.ok) throw new AiError('KI-Anfrage fehlgeschlagen (' + r.status + ').');
+    const j: any = await r.json();
+    return parseText(String(j.text ?? ''));
+  }
+  return directSearch(query, sec, fetchFn);
+}
+
 /** Fragt die Claude-API direkt aus dem Browser ab; der Schluessel bleibt auf dem Geraet. */
-export async function aiSearch(query: string, apiKey: string, fetchFn: typeof fetch = fetch): Promise<Song[]> {
+async function directSearch(query: string, apiKey: string, fetchFn: typeof fetch): Promise<Song[]> {
   const res = await fetchFn('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -111,5 +138,5 @@ export async function aiSearch(query: string, apiKey: string, fetchFn: typeof fe
   if (!res.ok) throw new AiError('KI-Anfrage fehlgeschlagen (' + res.status + ').');
   const j: any = await res.json();
   const text = (j.content ?? []).filter((c: any) => c.type === 'text').map((c: any) => c.text).join('');
-  return parseAiSongs(text).map(aiToSong);
+  return parseText(text);
 }

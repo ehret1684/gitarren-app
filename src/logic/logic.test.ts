@@ -223,7 +223,7 @@ test('Liedersuche: API-Aufruf mit Schluessel, Fehler 401', async () => {
   assert.equal(r[0].title, 'Wonderwall');
   assert.equal(seen.init.headers['x-api-key'], 'sk-test');
   const bad = (async () => ({ ok: false, status: 401, json: async () => ({}) })) as any;
-  await assert.rejects(() => aiSearch('x', 'k', bad), /abgelehnt/);
+  await assert.rejects(() => aiSearch('x', 'sk-k', bad), /abgelehnt/);
 });
 
 test('FFT: Sinus landet im richtigen Bin, Chroma passend', () => {
@@ -250,4 +250,18 @@ test('Update: Build-Nummer, Web- und APK-Pruefung', async () => {
   (globalThis as any).document = { baseURI: 'https://x.test/app/' };
   assert.ok(await checkUpdate(mk({ v: 'b' }), 'a', true));
   assert.equal(await checkUpdate(mk({ v: 'a' }), 'a', true), null);
+});
+
+test('Liedersuche: Zugangscode geht an den Vermittler, falscher Code wird gemeldet', async () => {
+  let seen: any;
+  const ok = (async (url: any, init: any) => {
+    seen = { url, init };
+    return { ok: true, status: 200, json: async () => ({ text: '[{"title":"Hey Jude","artist":"Beatles","bpm":75,"publicDomain":false,"body":"[F] [C]"}]' }) };
+  }) as any;
+  const r = await aiSearch('hey jude', ' mein-code ', ok);
+  assert.equal(r[0].title, 'Hey Jude');
+  assert.ok(String(seen.url).endsWith('/suche'));
+  assert.equal(seen.init.headers['x-code'], 'mein-code');
+  const bad = (async () => ({ ok: false, status: 401, json: async () => ({}) })) as any;
+  await assert.rejects(() => aiSearch('x', 'falsch', bad), /Zugangscode/);
 });
