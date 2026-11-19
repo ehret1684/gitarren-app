@@ -6,6 +6,8 @@ import { extractFromHtml } from './importer';
 import { streak, suggestToday, dayKey, Song } from './practice';
 import { detectPitch, nearestString, PitchSmoother } from './pitch';
 import { localSearch, parseAiSongs, aiToSong, aiSearch } from './aiSearch';
+import { checkUpdate, buildNumber } from './updateCheck';
+import { fftMagnitudes } from './fft';
 import { makeWav, toBase64 } from './wav';
 
 const st = { flats: false, german: false };
@@ -222,4 +224,30 @@ test('Liedersuche: API-Aufruf mit Schluessel, Fehler 401', async () => {
   assert.equal(seen.init.headers['x-api-key'], 'sk-test');
   const bad = (async () => ({ ok: false, status: 401, json: async () => ({}) })) as any;
   await assert.rejects(() => aiSearch('x', 'k', bad), /abgelehnt/);
+});
+
+test('FFT: Sinus landet im richtigen Bin, Chroma passend', () => {
+  const n = 8192, sr = 44100, f = 440;
+  const x = new Float32Array(n);
+  for (let i = 0; i < n; i++) x[i] = Math.sin((2 * Math.PI * f * i) / sr);
+  const m = fftMagnitudes(x);
+  let k = 0;
+  for (let i = 1; i < m.length; i++) if (m[i] > m[k]) k = i;
+  assert.ok(Math.abs((k * sr) / n - f) < sr / n);
+  const ch = chromaFromSpectrum(m, sr, n);
+  assert.equal(ch.indexOf(Math.max(...ch)), 9); // A
+});
+
+test('Update: Build-Nummer, Web- und APK-Pruefung', async () => {
+  assert.equal(buildNumber('build-12'), 12);
+  assert.equal(buildNumber('v1'), null);
+  const mk = (body: any, ok = true) => (async () => ({ ok, json: async () => body })) as any;
+  const rel = { tag_name: 'build-5', assets: [{ name: 'gitarre-ueben.apk', browser_download_url: 'https://x/apk' }] };
+  assert.equal((await checkUpdate(mk(rel), '4', false))?.url, 'https://x/apk');
+  assert.equal(await checkUpdate(mk(rel), '5', false), null);
+  assert.equal(await checkUpdate(mk(rel), '', false), null); // Entwicklung
+  assert.equal(await checkUpdate((async () => { throw new Error('offline'); }) as any, '4', false), null);
+  (globalThis as any).document = { baseURI: 'https://x.test/app/' };
+  assert.ok(await checkUpdate(mk({ v: 'b' }), 'a', true));
+  assert.equal(await checkUpdate(mk({ v: 'a' }), 'a', true), null);
 });

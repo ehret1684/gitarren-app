@@ -43,3 +43,8 @@ Ton, Dateiauswahl, Netz-Import und vor allem die **Mikrofon-Erkennung mit echter
 - **Schlecht gelaufen:** Test mit `\n` über ein Bash-Heredoc geschrieben → die Shell machte `\n` daraus (echter Zeilenumbruch im JSON-String), Test schlug fehl, der Parser war unschuldig. Dateien mit Escape-Folgen mit dem Write-Werkzeug schreiben, nicht per Heredoc.
 - **Schlecht gelaufen:** `gh auth refresh` im Terminal scheiterte („not logged in"), weil die Zeile mitten in den Prompt eingefügt war; erst `gh auth login -h github.com -s workflow` (HTTPS) brachte den Scope `workflow`.
 - **Offen:** KI-Suche nie mit echtem Schlüssel ausprobiert; Browser-Direktaufruf der API hängt am Header `anthropic-dangerous-direct-browser-access`.
+
+## 2026-11-19 · Native Module und Update
+
+- **Fallstrick:** Reine Logik, die `react-native` importiert, lässt sich unter `node --test` nicht laden (esbuild scheitert an `react-native/index.js`). Prüflogik deshalb in `src/logic/` ohne RN-Import halten (so `updateCheck.ts`).
+- **Offen:** Der APK-Bau mit den neuen nativen Modulen ist erst durch den CI-Lauf belegt; Funktion auf dem Gerät ungeprüft.

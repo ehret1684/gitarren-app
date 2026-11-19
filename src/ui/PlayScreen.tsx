@@ -65,7 +65,7 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
 
   const startListening = async () => {
     if (!micSupported()) {
-      Alert.alert('Zuhoeren nur in der Web-App', 'Oeffne die App im Browser (Link) und erlaube das Mikrofon. Es braucht eine https-Adresse.');
+      Alert.alert('Kein Mikrofon', 'Auf diesem Geraet ist kein Mikrofon-Zugriff moeglich.');
       return;
     }
     try {

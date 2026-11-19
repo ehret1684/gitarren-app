@@ -26,7 +26,25 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-audio"
+      "expo-audio",
+      [
+        "react-native-audio-api",
+        {
+          "iosMicrophonePermission": "Die App hoert deiner Gitarre zu (Stimmgeraet, Mitscrollen).",
+          "androidPermissions": [
+            "android.permission.RECORD_AUDIO",
+            "android.permission.MODIFY_AUDIO_SETTINGS"
+          ],
+          "androidForegroundService": false
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Fuer die Spracheingabe bei der Liedersuche.",
+          "speechRecognitionPermission": "Fuer die Spracheingabe bei der Liedersuche."
+        }
+      ]
     ],
     "experiments": {
       "baseUrl": "/gitarren-app"

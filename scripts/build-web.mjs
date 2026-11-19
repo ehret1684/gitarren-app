@@ -18,10 +18,12 @@ self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET'||new URL(e.request.url).origin!==location.origin)return;
   e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(C).then(x=>x.put(e.request,c));return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('${BASE}/index.html'))));
 });`);
+const BUILD_ID = Date.now().toString(36);
+writeFileSync('dist/version.json', JSON.stringify({ v: BUILD_ID }));
 let html = readFileSync('dist/index.html', 'utf8');
 const head = `<link rel="manifest" href="${BASE}/manifest.webmanifest"><meta name="theme-color" content="#14110f"><link rel="apple-touch-icon" href="${BASE}/icon-512.png">`;
 const sw = `<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('${BASE}/sw.js',{scope:'${BASE}/'}).catch(function(){})</script>`;
-html = html.replace('</head>', head + '</head>').replace('</body>', sw + '</body>');
+html = html.replace('</head>', `<script>window.__BUILD__=${JSON.stringify(BUILD_ID)}</script>` + head + '</head>').replace('</body>', sw + '</body>');
 writeFileSync('dist/index.html', html);
 if (!existsSync('dist/.nojekyll')) writeFileSync('dist/.nojekyll', '');
 console.log('dist/ fertig');

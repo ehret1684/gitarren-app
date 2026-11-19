@@ -56,3 +56,13 @@ Selbstkorrigierender `setTimeout` (`next += 60000/bpm`), Klick = WAV mit 1500/10
 - `aiSearch`: `POST https://api.anthropic.com/v1/messages` direkt aus dem Browser (`anthropic-dangerous-direct-browser-access`), Modell `claude-haiku-5-5`, Schlüssel in `AsyncStorage` (`gitarren.apikey.v1`), nur auf dem Gerät. Antwort = JSON-Array (max. 3), `parseAiSongs` liest tolerant und verwirft Lieder ohne Akkord.
 - **Urheberrecht:** Der Systemprompt verlangt Volltext nur bei gemeinfreien Liedern; bei geschützten nur Abschnitte + Akkordfolge (Song bekommt einen Hinweis im Body). Unsichere Lieder → leeres Array statt Erfindung.
 - Bester neuer Treffer wird automatisch übernommen (`id = ki-<slug>`, `source: 'ki'`), weitere per Antippen.
+
+## Natives Mikrofon und Sprache
+
+- `src/mic.ts` wählt je Plattform: Web = `getUserMedia` + AnalyserNode; nativ = `startNativePcm` (`src/nativeMic.ts`, `react-native-audio-api` `AudioRecorder.onAudioReady`, 44,1 kHz mono) → Ringpuffer (4096 bzw. 8192 Samples) → `fftMagnitudes` (`src/logic/fft.ts`, Hann + Radix-2) → `chromaFromSpectrum`. Die Web-Fassungen `*.web.ts` sind Stubs, damit die native Bibliothek nicht ins Web-Bundle kommt.
+- Spracheingabe nativ: `expo-speech-recognition` (`src/nativeSpeech.ts`, `de-DE`, ein Satz). Berechtigungen/Plugins in `app.json` (`RECORD_AUDIO`).
+
+## Update-Hinweis (`src/update.ts`, `src/logic/updateCheck.ts`, `src/ui/UpdateBanner.tsx`)
+
+- Web: `build-web.mjs` schreibt `dist/version.json` und `window.__BUILD__` in `index.html` (Zeitstempel). Die App vergleicht beim Start, bei Rückkehr in den Vordergrund und alle 30 min; bei Abweichung Banner „Aktualisieren" (= Seite neu laden, kein manuelles Leeren).
+- APK: Workflow setzt `EXPO_PUBLIC_BUILD=${{ github.run_number }}`; die App fragt `releases/latest` von `ehret1684/gitarren-app` ab; höheres `build-N` → Banner mit Direktlink auf die APK. Ohne Build-Kennung (Entwicklung) keine Prüfung. Installieren muss man die APK weiterhin selbst (Android-Vorgabe).

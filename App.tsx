@@ -7,6 +7,7 @@ import { PlayScreen } from './src/ui/PlayScreen';
 import { MetronomeScreen } from './src/ui/ToolsScreen';
 import { TunerScreen } from './src/ui/TunerScreen';
 import { PracticeScreen } from './src/ui/PracticeScreen';
+import { UpdateBanner } from './src/ui/UpdateBanner';
 import { C, s } from './src/ui/theme';
 
 type Tab = 'songs' | 'practice' | 'metro' | 'tuner';
@@ -28,6 +29,7 @@ export default function App() {
   return (
     <SafeAreaView style={s.screen}>
       <StatusBar style="light" />
+      <UpdateBanner />
       <View style={{ flex: 1 }}>
         {song ? (
           <PlayScreen

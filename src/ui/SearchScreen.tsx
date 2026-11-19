@@ -3,6 +3,7 @@ import { Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-na
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Song } from '../logic/practice';
 import { AiError, aiSearch, localSearch } from '../logic/aiSearch';
+import { nativeSpeechAvailable, startNativeSpeech } from '../nativeSpeech';
 import { C, s } from './theme';
 
 const K_KEY = 'gitarren.apikey.v1';
@@ -20,7 +21,7 @@ export function SearchScreen({ have, onAdd, onClose }: { have: Set<string>; onAd
   const [rest, setRest] = useState<Song[]>([]);
   const [rec, setRec] = useState(false);
   const recRef = useRef<any>(null);
-  const hasVoice = !!speechCtor();
+  const hasVoice = nativeSpeechAvailable || !!speechCtor();
 
   useEffect(() => {
     AsyncStorage.getItem(K_KEY).then((k) => { if (k) setKey(k); else setShowKey(true); }).catch(() => {});
@@ -74,12 +75,21 @@ export function SearchScreen({ have, onAdd, onClose }: { have: Set<string>; onAd
   };
 
   const listen = () => {
-    const R = speechCtor();
-    if (!R) return;
     if (rec) {
       recRef.current?.stop?.();
       return;
     }
+    if (nativeSpeechAvailable) {
+      setRec(true);
+      startNativeSpeech({
+        onText: (txt) => { setQ(txt); run(txt); },
+        onError: (m) => setMsg(m),
+        onEnd: () => setRec(false),
+      }).then((stop) => { recRef.current = { stop }; }).catch(() => { setRec(false); setMsg('Spracheingabe nicht verfuegbar.'); });
+      return;
+    }
+    const R = speechCtor();
+    if (!R) return;
     const r = new R();
     r.lang = 'de-DE';
     r.interimResults = false;
@@ -122,7 +132,7 @@ export function SearchScreen({ have, onAdd, onClose }: { have: Set<string>; onAd
             </Pressable>
           )}
         </View>
-        {!hasVoice && <Text style={[s.dim, { marginBottom: 8 }]}>Spracheingabe gibt es nur in der Web-App mit Chrome oder Safari.</Text>}
+        {!hasVoice && <Text style={[s.dim, { marginBottom: 8 }]}>Spracheingabe gibt es hier nicht (Web: Chrome oder Safari).</Text>}
         {!!msg && <Text style={[s.text, { marginBottom: 10 }]}>{msg}</Text>}
         {added.map((x) => (
           <View key={x.id} style={[s.card, { borderColor: C.ok }]}>

@@ -7,11 +7,12 @@
 | Metronom, Referenztöne | fertig, Ton ungetestet |
 | Üben: Streak, Wochenbalken, Vorschlag, 10-Minuten-Timer | fertig |
 | Weihnachtsbibliothek (15 Lieder) | fertig |
-| Zuhören per Mikrofon + Mitscrollen | fertig, **nur Web**, nicht mit echter Gitarre getestet |
+| Zuhören per Mikrofon + Mitscrollen | fertig, Web und nativ (eigene FFT `logic/fft.ts`), nicht mit echter Gitarre getestet |
+| Update-Hinweis (Web: `version.json`; APK: neuer GitHub-Release) | fertig, Banner oben in der App |
 | Installation per Link (PWA) | live |
 | Native APK | offen (Scope `workflow`) |
 
-**Tests:** 22 grün (`npm test`), `npm run typecheck` sauber, Android-Bundle und Web-Export bauen.
+**Tests:** 24 grün (`npm test`), `npm run typecheck` sauber, Android-Bundle und Web-Export bauen.
 
 ## Offen
 
