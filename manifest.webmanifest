@@ -1,0 +1,18 @@
+{
+  "name": "Gitarre ueben",
+  "short_name": "Gitarre",
+  "lang": "de",
+  "display": "standalone",
+  "start_url": "/gitarren-app/",
+  "scope": "/gitarren-app/",
+  "background_color": "#14110f",
+  "theme_color": "#14110f",
+  "icons": [
+    {
+      "src": "/gitarren-app/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
