@@ -96,3 +96,13 @@ graph LR
 ## Tabulatur-Ansicht (`src/logic/tab.ts`)
 
 Knopf „Tab" im Liedmodus. `chordFrets` dreht die Griffe aus `SHAPES` (tief → hoch) auf Tabulaturreihenfolge (e, B, G, D, A, E; `x` = Saite nicht gespielt). `lineToTab` setzt jeden Akkord als Bundzahlen-Säule genau über die Silbe, auf der er steht; Transponieren und Kapo-Absenkung wirken mit (`map`). Zeilen ohne Akkord bleiben Text. **Grenze:** Es werden nur Akkordgriffe als Tab ausgegeben, keine Melodienoten — die Lieder enthalten keine Notendaten, und Melodien aus dem Gedächtnis zu setzen wäre unzuverlässig.
+
+## Notenblatt: Noten + Tabulatur der Melodie (`src/data/melodies.ts`, `src/logic/score.ts`, `src/ui/ScoreView.tsx`)
+
+Knopf „Tab" zeigt bei Liedern mit Melodiedaten statt der Akkord-Tabs ein Notenblatt wie auf Lehrblättern: Griffbild über dem Akkordwechsel, Notenzeile, Silben unter den Noten, darunter sechs Tabulaturlinien mit Bundzahlen.
+
+- **Datenformat:** `MNote = [MIDI, Länge in Sechzehnteln, Silbe, Akkord?]`; `''` = Note ohne Silbe, `'_'` = Haltebogen. Takte als Arrays, `barLen` 12 = 6/8.
+- **Quelle (belegt):** Stille Nacht aus der Mutopia-LilyPond-Datei `GruberFX/stille_nacht/stille_nacht.ly` (Public Domain, Sopranstimme in B-Dur), mit `scripts/ly-melodie.py <datei> -3` nach G-Dur gesetzt (passt zu G/D7/C der Lieder). Silbenzuordnung nach einem Notenblatt-Foto des Nutzers. Akkorde je Takt aus dem Bass der Vorlage.
+- **Tabulatur:** `fretFor` nimmt den kleinsten Bund (≤ 12), bei Gleichstand die höhere Saite. Transponieren verschiebt Melodie und Akkorde zusammen; Kreuze stehen als ♯ vor jeder Note (keine Vorzeichen). Notenform aus der Länge (`noteShape`), ohne Balken (Fahnen), Hilfslinien über/unter der Zeile.
+- **Umbruch:** `layoutSystems` füllt Zeilen nach Breite (bei 360–412 dp zwei Takte je Zeile).
+- **Weitere Lieder:** Melodie nur aus belegter Quelle aufnehmen (Mutopia, Notenblatt des Nutzers); nie aus dem Gedächtnis. Mutopia hat keine O Tannenbaum / O du fröhliche / Alle Jahre wieder.

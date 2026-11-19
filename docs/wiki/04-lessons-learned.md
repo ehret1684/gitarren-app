@@ -53,3 +53,6 @@ Ton, Dateiauswahl, Netz-Import und vor allem die **Mikrofon-Erkennung mit echter
 
 - **2026-11-19 · OTA blind gebaut:** Manifest-Dienst gegen den echten Dienst per `curl` geprüft (Header, Hashes), das Verhalten in der APK selbst nicht. Erster echter Test: eine APK mit `expo-updates` bauen, dann eine JS-Änderung pushen und auf das Banner warten.
 - **Fallstrick:** `expo export` schreibt Asset-Pfade unter Windows mit `\`, unter Linux mit `/` — der Manifest-Dienst normalisiert beides.
+
+- **2026-11-19 · Melodie aus dem Gedächtnis war falsch:** Beim Plan, die Stille-Nacht-Melodie selbst zu setzen, wich meine Erinnerung der Schlussphrase von der Quelle ab (Mutopia-Datei: `…bes'4. d'' bes'8. f'16 d'8 f'8. ees'16 c'8 bes2.`). Melodien nur aus belegten Quellen übernehmen und gegenprüfen. Folktunefinder liefert 403 (Bot-Sperre) — nicht umgehen; Mutopia-`.ly`-Dateien sind per `curl` lesbar.
+- **Schlecht gelaufen:** Notenblatt konnte nicht im Browser angesehen werden (Vorschau-Tab blieb bei „Policy check in progress"); Layout nur rechnerisch geprüft (`layoutSystems`-Breiten, Tests). Erst nach Sichtprüfung auf dem Gerät als fertig betrachten.

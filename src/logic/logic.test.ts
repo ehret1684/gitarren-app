@@ -8,6 +8,8 @@ import { detectPitch, nearestString, PitchSmoother } from './pitch';
 import { localSearch, parseAiSongs, aiToSong, aiSearch } from './aiSearch';
 import { checkUpdate, buildNumber } from './updateCheck';
 import { chordTab, chordFrets, lineToTab } from './tab';
+import { staffPos, fretFor, noteShape, layoutSystems, transposeBars, barWidth } from './score';
+import { MELODIES, melodyFor } from '../data/melodies';
 import { fftMagnitudes } from './fft';
 import { makeWav, toBase64 } from './wav';
 
@@ -282,4 +284,31 @@ test('Tabulatur: Liedzeile, Saeulen stehen ueber der Silbe', () => {
   assert.ok(b.strings.every((r) => r.length === b.strings[0].length));
   assert.ok(b.strings[0].startsWith('e|3')); // G-Dur: hohes e = Bund 3
   assert.ok(lineToTab(l, (c) => (c === 'G' ? 'A' : c)).chords.startsWith('A'));
+});
+
+test('Notenblatt: Notenstufen, Kreuz, Bund-Zuordnung', () => {
+  assert.deepEqual(staffPos(64), { step: 30, sharp: false }); // E4 = unterste Linie
+  assert.deepEqual(staffPos(66), { step: 31, sharp: true }); // F#4
+  assert.deepEqual(staffPos(60), { step: 28, sharp: false }); // C4
+  assert.deepEqual(fretFor(64), { string: 0, fret: 0 }); // leeres e
+  assert.deepEqual(fretFor(59), { string: 1, fret: 0 }); // leeres H
+  assert.deepEqual(fretFor(62), { string: 1, fret: 3 }); // D4 auf der H-Saite
+  assert.equal(fretFor(30), null);
+  assert.deepEqual(noteShape(3), { head: 'filled', stem: true, flags: 1, dots: 1 });
+  assert.deepEqual(noteShape(12), { head: 'hollow', stem: true, flags: 0, dots: 1 });
+});
+
+test('Notenblatt: Stille Nacht - Takte voll, Silben/Noten, Zeilenumbruch, Transponieren', () => {
+  const m = melodyFor('lib-stille-nacht')!;
+  assert.ok(m && MELODIES.length >= 1);
+  assert.equal(m.bars.length, 12);
+  for (const b of m.bars) assert.equal(b.reduce((a, n) => a + n[1], 0), m.barLen);
+  assert.equal(m.bars.flat().length, 46);
+  assert.equal(m.bars.flat().filter((n) => n[2]).length, 44); // nur 2 Noten ohne Silbe (Bindung)
+  const sys = layoutSystems(m.bars, 360);
+  assert.equal(sys.flat().length, 12);
+  assert.ok(sys.every((s) => s.reduce((a, i) => a + barWidth(m.bars[i]), 0) <= 360 || s.length === 1));
+  assert.equal(transposeBars(m.bars, 2)[0][0][0], 64);
+  // alle Toene auf der Gitarre griffbar (Bund <= 12)
+  assert.ok(m.bars.flat().every((n) => fretFor(n[0]) !== null));
 });

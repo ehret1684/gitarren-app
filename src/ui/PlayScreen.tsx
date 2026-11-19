@@ -7,6 +7,9 @@ import { Style, detectGerman, shapeFor, suggestCapo, transposeChord } from '../l
 import { micSupported, startMic } from '../mic';
 import { Follower, detect } from '../logic/listen';
 import { lineToTab } from '../logic/tab';
+import { melodyFor } from '../data/melodies';
+import { slug } from '../logic/aiSearch';
+import { ScoreView } from './ScoreView';
 import { ChordDiagram } from './ChordDiagram';
 import { STATUS_LABEL } from './SongsScreen';
 import { C, s } from './theme';
@@ -27,6 +30,7 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
   const [fontSize, setFontSize] = useState(17);
   const [more, setMore] = useState(false);
   const [tab, setTab] = useState(false);
+  const melody = useMemo(() => melodyFor(song.id) ?? melodyFor(slug(song.title)), [song.id, song.title]);
   const [secs, setSecs] = useState(0);
   const sv = useRef<ScrollViewInstance>(null);
   const y = useRef(0);
@@ -125,6 +129,10 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
         onScroll={(e) => { if (!scroll) y.current = e.nativeEvent.contentOffset.y; }}
         scrollEventThrottle={50}
       >
+        {tab && melody ? (
+          <ScoreView melody={melody} steps={steps} style={st} fontSize={fontSize} />
+        ) : (
+        <>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>
           {shown.map((c) => {
             const sh = shapeFor(c, german);
@@ -171,6 +179,8 @@ export function PlayScreen({ song, onBack, onChange, onDelete, onPractice }: {
               ))}
             </Pressable>
           ),
+        )}
+        </>
         )}
       </ScrollView>
       <View style={{ backgroundColor: C.card, padding: 10, borderTopWidth: 1, borderColor: C.line }}>

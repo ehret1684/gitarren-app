@@ -10,10 +10,11 @@
 | Zuhören per Mikrofon + Mitscrollen | fertig, Web und nativ (eigene FFT `logic/fft.ts`), nicht mit echter Gitarre getestet |
 | Update: Web per `version.json`; APK per OTA (`expo-updates`, Manifest-Dienst auf Railway) + Hinweis auf neue APK | Dienst und Manifest geprüft (curl), **auf dem Gerät ungeprüft** |
 | Tabulatur-Ansicht der Akkorde (Knopf „Tab"), Akkordgriffe über der Silbe | fertig, Melodien/Noten nicht möglich |
+| Notenblatt (Griffbilder, Noten, Text, Tabulatur der Melodie) | nur **Stille Nacht**; Layout ungesehen, nur rechnerisch geprüft |
 | Installation per Link (PWA) | live |
 | Native APK | offen (Scope `workflow`) |
 
-**Tests:** 27 grün (`npm test`), `npm run typecheck` sauber, Android-Bundle und Web-Export bauen.
+**Tests:** 29 grün (`npm test`), `npm run typecheck` sauber, Android-Bundle und Web-Export bauen.
 
 ## Offen
 
