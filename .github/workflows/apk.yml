@@ -1,0 +1,37 @@
+name: APK bauen und veroeffentlichen
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - run: npx expo prebuild --platform android --no-install
+      - name: Release-APK bauen
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+      - name: Als Release veroeffentlichen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk gitarre-ueben.apk
+          gh release create "build-${{ github.run_number }}" gitarre-ueben.apk \
+            --title "Build ${{ github.run_number }}" --notes "Commit ${{ github.sha }}" --latest
