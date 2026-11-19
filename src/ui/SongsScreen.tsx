@@ -7,6 +7,7 @@ import { guessTitle } from '../logic/song';
 import { extractFromHtml, isHttpUrl } from '../logic/importer';
 import { C, s } from './theme';
 import { LibraryScreen } from './LibraryScreen';
+import { SearchScreen } from './SearchScreen';
 
 export const STATUS_LABEL: Record<Status, string> = { neu: 'Neu', ueben: 'Ueben', kann: 'Kann ich' };
 const STATUS_COLOR: Record<Status, string> = { neu: C.dim, ueben: C.accent, kann: C.ok };
@@ -14,6 +15,7 @@ const STATUS_COLOR: Record<Status, string> = { neu: C.dim, ueben: C.accent, kann
 export function SongsScreen({ songs, onOpen, onAdd }: { songs: Song[]; onOpen: (id: string) => void; onAdd: (s: Song) => void }) {
   const [adding, setAdding] = useState(false);
   const [lib, setLib] = useState(false);
+  const [search, setSearch] = useState(false);
   const [filter, setFilter] = useState<Status | 'alle'>('alle');
   const list = songs.filter((x) => filter === 'alle' || x.status === filter);
 
@@ -40,6 +42,9 @@ export function SongsScreen({ songs, onOpen, onAdd }: { songs: Song[]; onOpen: (
           </Pressable>
         ))}
         {!list.length && <Text style={s.dim}>Keine Lieder in dieser Ansicht.</Text>}
+        <Pressable style={[s.btn, { marginTop: 8 }]} onPress={() => setSearch(true)}>
+          <Text style={s.btnTxt}>Lied suchen (Sprache / KI)</Text>
+        </Pressable>
         <Pressable style={[s.btn2, { marginTop: 8 }]} onPress={() => setLib(true)}>
           <Text style={s.btn2Txt}>Weihnachtslieder-Bibliothek</Text>
         </Pressable>
@@ -47,6 +52,7 @@ export function SongsScreen({ songs, onOpen, onAdd }: { songs: Song[]; onOpen: (
           <Text style={s.btnTxt}>+ Lied hinzufuegen</Text>
         </Pressable>
       </ScrollView>
+      {search && <SearchScreen have={new Set(songs.map((x) => x.id))} onAdd={onAdd} onClose={() => setSearch(false)} />}
       {lib && <LibraryScreen have={new Set(songs.map((x) => x.id))} onAdd={(a) => a.forEach(onAdd)} onClose={() => setLib(false)} />}
       {adding && <AddSong onClose={() => setAdding(false)} onAdd={(x) => { onAdd(x); setAdding(false); }} />}
     </View>

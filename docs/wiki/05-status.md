@@ -11,7 +11,7 @@
 | Installation per Link (PWA) | live |
 | Native APK | offen (Scope `workflow`) |
 
-**Tests:** 19 grün (`npm test`), `npm run typecheck` sauber, Android-Bundle und Web-Export bauen.
+**Tests:** 22 grün (`npm test`), `npm run typecheck` sauber, Android-Bundle und Web-Export bauen.
 
 ## Offen
 

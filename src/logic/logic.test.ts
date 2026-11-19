@@ -5,6 +5,7 @@ import { parseSong, toSegments, allChords } from './song';
 import { extractFromHtml } from './importer';
 import { streak, suggestToday, dayKey, Song } from './practice';
 import { detectPitch, nearestString, PitchSmoother } from './pitch';
+import { localSearch, parseAiSongs, aiToSong, aiSearch } from './aiSearch';
 import { makeWav, toBase64 } from './wav';
 
 const st = { flats: false, german: false };
@@ -191,4 +192,34 @@ test('Stimmgeraet: Median glaettet Ausreisser', () => {
   let out: number | null = null;
   for (const f of [110, 110.2, 220, 110.1, 109.9]) out = sm.push(f);
   assert.ok(out! > 109 && out! < 111);
+});
+
+test('Liedersuche: lokal nach Titel und Textzeile', () => {
+  assert.equal(localSearch('stille nacht')[0].id, 'lib-stille-nacht');
+  assert.equal(localSearch('Tannenbaum')[0].id, 'lib-o-tannenbaum');
+  assert.deepEqual(localSearch('xyzzy unbekannt'), []);
+});
+
+test('Liedersuche: KI-Antwort tolerant lesen, Muell verwerfen', () => {
+  const txt = 'Hier:\n```json\n[{"title":"Hey Jude","artist":"Beatles","bpm":75,"publicDomain":false,"body":"Strophe\\n[F] [C] [C7] [F]"},{"title":"Leer","body":"kein akkord"},{"nix":1}]\n```';
+  const r = parseAiSongs(txt);
+  assert.equal(r.length, 1);
+  const s = aiToSong(r[0]);
+  assert.equal(s.id, 'ki-hey-jude-beatles');
+  assert.ok(s.body.includes('Geschuetztes Lied'));
+  assert.deepEqual(parseAiSongs('[]'), []);
+  assert.deepEqual(parseAiSongs('kaputt'), []);
+});
+
+test('Liedersuche: API-Aufruf mit Schluessel, Fehler 401', async () => {
+  let seen: any;
+  const ok = (async (url: any, init: any) => {
+    seen = { url, init };
+    return { ok: true, status: 200, json: async () => ({ content: [{ type: 'text', text: '[{"title":"Wonderwall","artist":"Oasis","bpm":87,"publicDomain":false,"body":"[Em] [G] [D] [A]"}]' }] }) };
+  }) as any;
+  const r = await aiSearch('wonderwall', ' sk-test ', ok);
+  assert.equal(r[0].title, 'Wonderwall');
+  assert.equal(seen.init.headers['x-api-key'], 'sk-test');
+  const bad = (async () => ({ ok: false, status: 401, json: async () => ({}) })) as any;
+  await assert.rejects(() => aiSearch('x', 'k', bad), /abgelehnt/);
 });

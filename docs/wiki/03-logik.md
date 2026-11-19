@@ -49,3 +49,10 @@ Selbstkorrigierender `setTimeout` (`next += 60000/bpm`), Klick = WAV mit 1500/10
 - Zeitfenster 4096 Samples alle 80 ms → `detectPitch` (YIN, Schwelle 0,15, parabolische Interpolation, 60–450 Hz, Pegel > 0,008 RMS) → `PitchSmoother` (Median über 5) → `nearestString` (nächste der 6 Saiten, Abweichung in Cent; Option „Halbton tiefer").
 - Anzeige: Saitenname, Hz, Cent, Zeiger; grün bei ±5 Cent. Referenztöne bleiben als Ausweichlösung ohne Mikrofon.
 - Tests: Sinus mit Obertönen trifft alle sechs Saiten auf < 2 Cent; Stille/Rauschen = kein Ton.
+
+## Liedersuche (`src/logic/aiSearch.ts`, `src/ui/SearchScreen.tsx`)
+
+- Eingabe per Text oder Sprache (`SpeechRecognition`, `de-DE`, nur Web in Chrome/Safari). Ablauf: erst `localSearch` im eingebauten Bestand (Titel/Autor/Text); ohne Treffer oder mit gesetztem Schlüssel `aiSearch`.
+- `aiSearch`: `POST https://api.anthropic.com/v1/messages` direkt aus dem Browser (`anthropic-dangerous-direct-browser-access`), Modell `claude-haiku-5-5`, Schlüssel in `AsyncStorage` (`gitarren.apikey.v1`), nur auf dem Gerät. Antwort = JSON-Array (max. 3), `parseAiSongs` liest tolerant und verwirft Lieder ohne Akkord.
+- **Urheberrecht:** Der Systemprompt verlangt Volltext nur bei gemeinfreien Liedern; bei geschützten nur Abschnitte + Akkordfolge (Song bekommt einen Hinweis im Body). Unsichere Lieder → leeres Array statt Erfindung.
+- Bester neuer Treffer wird automatisch übernommen (`id = ki-<slug>`, `source: 'ki'`), weitere per Antippen.

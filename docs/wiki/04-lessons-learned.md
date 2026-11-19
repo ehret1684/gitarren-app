@@ -37,3 +37,9 @@ Ton, Dateiauswahl, Netz-Import und vor allem die **Mikrofon-Erkennung mit echter
 - **Gut:** YIN statt FFT-Spitzensuche — bei Gitarre ist der Grundton oft schwächer als die Obertöne, die FFT würde Oktavfehler machen. Im Test mit synthetischen Obertönen sauber.
 - **Offen:** Nur mit synthetischen Signalen geprüft, nicht mit echter Gitarre/Mikrofon. Tiefes E (82 Hz) braucht das 4096er-Fenster (~93 ms); bei Problemen Fenster vergrößern.
 - **Fallstrick:** Im frischen Worktree fehlen `node_modules` → `npm test` meldet `ERR_MODULE_NOT_FOUND`; erst `npm ci`.
+
+## 2026-11-19 · Liedersuche und Auslieferung
+
+- **Schlecht gelaufen:** Test mit `\n` über ein Bash-Heredoc geschrieben → die Shell machte `\n` daraus (echter Zeilenumbruch im JSON-String), Test schlug fehl, der Parser war unschuldig. Dateien mit Escape-Folgen mit dem Write-Werkzeug schreiben, nicht per Heredoc.
+- **Schlecht gelaufen:** `gh auth refresh` im Terminal scheiterte („not logged in"), weil die Zeile mitten in den Prompt eingefügt war; erst `gh auth login -h github.com -s workflow` (HTTPS) brachte den Scope `workflow`.
+- **Offen:** KI-Suche nie mit echtem Schlüssel ausprobiert; Browser-Direktaufruf der API hängt am Header `anthropic-dangerous-direct-browser-access`.
