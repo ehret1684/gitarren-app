@@ -79,3 +79,18 @@ test('WAV', () => {
   assert.equal(String.fromCharCode(...w.slice(0, 4)), 'RIFF');
   assert.ok(toBase64(w).length > 100);
 });
+
+import { CHRISTMAS } from '../data/christmas';
+import { isChord } from './chords';
+
+test('Weihnachtsbibliothek: eindeutige IDs, alle Akkorde gueltig und mit Griffbild', () => {
+  assert.equal(new Set(CHRISTMAS.map((x) => x.id)).size, CHRISTMAS.length);
+  for (const x of CHRISTMAS) {
+    const ch = allChords(parseSong(x.body));
+    assert.ok(ch.length >= 4, x.title);
+    for (const c of ch) {
+      assert.ok(isChord(c), `${x.title}: ${c}`);
+      assert.ok(shapeFor(c), `${x.title}: kein Griffbild fuer ${c}`);
+    }
+  }
+});

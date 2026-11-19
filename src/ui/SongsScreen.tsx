@@ -6,12 +6,14 @@ import { Song, Status } from '../logic/practice';
 import { guessTitle } from '../logic/song';
 import { extractFromHtml, isHttpUrl } from '../logic/importer';
 import { C, s } from './theme';
+import { LibraryScreen } from './LibraryScreen';
 
 export const STATUS_LABEL: Record<Status, string> = { neu: 'Neu', ueben: 'Ueben', kann: 'Kann ich' };
 const STATUS_COLOR: Record<Status, string> = { neu: C.dim, ueben: C.accent, kann: C.ok };
 
 export function SongsScreen({ songs, onOpen, onAdd }: { songs: Song[]; onOpen: (id: string) => void; onAdd: (s: Song) => void }) {
   const [adding, setAdding] = useState(false);
+  const [lib, setLib] = useState(false);
   const [filter, setFilter] = useState<Status | 'alle'>('alle');
   const list = songs.filter((x) => filter === 'alle' || x.status === filter);
 
@@ -38,10 +40,14 @@ export function SongsScreen({ songs, onOpen, onAdd }: { songs: Song[]; onOpen: (
           </Pressable>
         ))}
         {!list.length && <Text style={s.dim}>Keine Lieder in dieser Ansicht.</Text>}
+        <Pressable style={[s.btn2, { marginTop: 8 }]} onPress={() => setLib(true)}>
+          <Text style={s.btn2Txt}>Weihnachtslieder-Bibliothek</Text>
+        </Pressable>
         <Pressable style={[s.btn, { marginTop: 8 }]} onPress={() => setAdding(true)}>
           <Text style={s.btnTxt}>+ Lied hinzufuegen</Text>
         </Pressable>
       </ScrollView>
+      {lib && <LibraryScreen have={new Set(songs.map((x) => x.id))} onAdd={(a) => a.forEach(onAdd)} onClose={() => setLib(false)} />}
       {adding && <AddSong onClose={() => setAdding(false)} onAdd={(x) => { onAdd(x); setAdding(false); }} />}
     </View>
   );

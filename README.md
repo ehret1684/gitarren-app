@@ -31,3 +31,10 @@ Preview-Eintrag `gitarren-app` in `.claude/launch.json` (Web, Port 8099).
 - Audio (Datei im Cache + expo-audio) und Dateiauswahl sind auf dem Gerät unverifiziert.
 - Netz-Import: holt nur die eine eingegebene Adresse, Seiten mit JavaScript-Rendering oder Sperre liefern nichts → Text einfügen. Texte/Akkorde sind meist urheberrechtlich geschützt; Nutzung privat.
 - Offen: Mikrofon-Stimmgerät (braucht natives Pitch-Modul), Akkord-Wechsel-Training, Cloud-Sync.
+
+## Auf dem Handy installieren (ohne Laptop)
+Web-App (PWA), gehostet auf GitHub Pages aus Branch `gh-pages` des Repos `ehret1684/gitarren-app`:
+**https://ehret1684.github.io/gitarren-app/** — in Chrome öffnen, Menü ⋮ → „App installieren" / „Zum Startbildschirm".
+Bauen und veröffentlichen: `npm run build:web`, Inhalt von `dist/` in den Branch `gh-pages` pushen.
+Web-Grenzen: Netz-Import oft durch Browser-Sperre (CORS) blockiert → Text einfügen; Haptik fehlt.
+Native APK: `.github/workflows/apk.yml` (baut bei Push auf `main`), braucht für den Push den `gh`-Scope `workflow` (`gh auth refresh -s workflow`); im Repo derzeit nicht enthalten.
